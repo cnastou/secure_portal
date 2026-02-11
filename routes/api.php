@@ -8,6 +8,7 @@ use App\Http\Controllers\AuthController;
 // ------------------------
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail']);
 Route::post('/admin/create', [AuthController::class, 'createAdmin']); // For development/setup only
 
 // ------------------------

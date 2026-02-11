@@ -77,6 +77,26 @@ class AuthController extends Controller
         return view('verify-email-success');
     }
 
+    // RESEND VERIFICATION EMAIL
+    public function resendVerificationEmail(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email'
+        ]);
+
+        $user = User::where('email', $request->email)->firstOrFail();
+
+        // Check if email is already verified
+        if ($user->email_verified_at) {
+            return response()->json(['message' => 'Email is already verified.'], 200);
+        }
+
+        // Resend verification email
+        Mail::to($user->email)->send(new VerifyEmail($user));
+
+        return response()->json(['message' => 'Verification email sent. Please check your email.'], 200);
+    }
+
     // CREATE ADMIN (for testing/setup purposes)
     public function createAdmin(Request $request)
     {
