@@ -32,6 +32,18 @@
         </table>
     </div>
 
+    <!-- Email Verification Alert -->
+    <div id="email-verification-alert" class="alert alert-warning mt-3" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <strong>Email Not Verified</strong>
+                <p class="mb-0 mt-2">Your email address has not been verified yet. Please check your email for the verification link, or request a new one.</p>
+            </div>
+            <button id="resend-verification-btn" class="btn btn-warning ms-3">Resend Verification Email</button>
+        </div>
+        <div id="resend-message" class="mt-2" style="display: none;"></div>
+    </div>
+
     <div id="admin-section" class="mt-4" style="display: none;">
         <div class="alert alert-info">
             <h3>Admin Panel</h3>
@@ -125,8 +137,11 @@
                 }
                 if (user.email_verified_at) {
                     tableHtml += `<tr><th>Email Verified</th><td>${new Date(user.email_verified_at).toLocaleString()}</td></tr>`;
+                    $('#email-verification-alert').hide();
                 } else {
                     tableHtml += `<tr><th>Email Verified</th><td><span class="badge bg-warning">Not Verified</span></td></tr>`;
+                    $('#email-verification-alert').show();
+                    window.userEmail = user.email; // Store email for resend function
                 }
 
                 $('#user-table-body').html(tableHtml);
@@ -180,6 +195,35 @@
             },
             error: function() {
                 alert('Logout failed. Please try again.');
+            }
+        });
+    });
+
+    // Resend verification email functionality
+    $('#resend-verification-btn').on('click', function() {
+        const btn = $(this);
+        const originalText = btn.text();
+        btn.prop('disabled', true).text('Sending...');
+
+        $.ajax({
+            url: '/api/resend-verification-email',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ email: window.userEmail }),
+            success: function(response) {
+                $('#resend-message').html(
+                    '<div class="alert alert-success mb-0">✓ Verification email sent! Please check your email within 24 hours.</div>'
+                ).show();
+                btn.text(originalText).prop('disabled', false);
+                setTimeout(() => {
+                    $('#resend-message').fadeOut();
+                }, 5000);
+            },
+            error: function(error) {
+                $('#resend-message').html(
+                    '<div class="alert alert-danger mb-0">✗ Failed to send verification email. Please try again.</div>'
+                ).show();
+                btn.text(originalText).prop('disabled', false);
             }
         });
     });
